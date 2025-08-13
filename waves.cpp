@@ -1,3 +1,6 @@
+/*This is a perplexity written code
+  that prints out a sine wave.*/
+
 #include <iostream>
 #include <cmath>
 #include <unistd.h>  // for usleep
