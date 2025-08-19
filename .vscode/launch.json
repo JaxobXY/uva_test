@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/JacobC/Documents/uva_test",
+      "program": "/Users/JacobC/Documents/uva_test/build/Debug/outDebug"
+    }
+  ]
+}
