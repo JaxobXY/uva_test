@@ -1,55 +1,58 @@
-#include<iostream>
+#include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <iomanip>
 
 using namespace std;
 
 int main()
 {
-    vector <string> filenames;
     int nnames;
-    int maxlen = 0;
-    cin >> nnames;
-
-    for(int i = 0; i < nnames; i++)
+    while(cin >> nnames)
     {
-        string name;
-        cin >> name;
-        filenames.push_back(name);
-        if (name.length() > maxlen) {
-            maxlen = name.length();
-        }
-    }
-    
-    std::sort(filenames.begin(), filenames.end());
-
-    // Calculate number of columns correctly
-    int cols = 1;
-    while (cols * maxlen + (cols - 1) * 2 <= 60) {
-        cols++;
-    }
-    cols--; // Step back to the last valid number of columns
-    
-    int rows = (nnames + cols - 1) / cols; // Ceiling division
-
-    cout << string(60, '-') << endl;
-
-    for(int i = 0; i < rows; i++)
-    {
-        for(int j = 0; j < cols; j++)
+        vector<string> filenames;
+        int maxlen = 0;
+        
+        for(int i = 0; i < nnames; i++)
         {
-            int index = i + j * rows;
-            if(index < filenames.size())
+            string name;
+            cin >> name;
+            filenames.push_back(name);
+            maxlen = max(maxlen, (int)name.length());
+        }
+        
+        sort(filenames.begin(), filenames.end());
+
+        int cols;
+        if (maxlen >= 60) {
+            cols = 1;
+        } else {
+            cols = 1 + (60 - maxlen) / (maxlen + 2);
+        }
+        
+        int rows = (nnames + cols - 1) / cols;
+
+        cout << string(60, '-') << endl;
+
+        for(int i = 0; i < rows; i++)
+        {
+            for(int j = 0; j < cols; j++)
             {
-                cout << filenames[index];
-                if (j < cols - 1) {
-                    // Add padding for all but last column
-                    int padding = maxlen + 2 - filenames[index].length();
-                    cout << string(padding, ' ');
+                int index = j * rows + i;
+                if(index < filenames.size())
+                {
+                    // For all but last column: left-justify in field of width maxlen + 2
+                    if (j < cols - 1) {
+                        cout << setw(maxlen + 2) << left << filenames[index];
+                    } else {
+                        // For last column: just print the filename (no extra trailing spaces)
+                        cout << filenames[index];
+                    }
                 }
             }
+            cout << endl;
         }
-        cout << endl;
     }
+    return 0;
 }
