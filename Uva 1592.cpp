@@ -1,41 +1,33 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <sstream> // Added this include
+#include <sstream>
+#include <map>
 
 using namespace std;
 
 int main()
 {
+    vector<map<string, int>> gridhash;
+    vector<set> gridhash;
+    
     int x;
     int y;
-    string temp;
-    cin >> x >> y;
-    cin.ignore(); // Added this line
+    cin >> x >> y; // Read dimensions first
+    cin.ignore(); // Clear the newline after reading y
     
-    vector<vector<string>> input(y, vector<string>()); // Changed initialization
+    vector<vector<string>> grid(x, vector<string>(y)); // Initialize grid with x rows and y columns
     
     for(int i = 0; i < x; i++)
     {
         string line;
-        getline(cin, line); // Changed reading method
+        getline(cin, line); // Read entire line
         stringstream ss(line);
         
         for(int j = 0; j < y; j++)
         {
-            getline(ss, temp, ' '); // Read comma-separated values
-            input[j].push_back(temp);
+            getline(ss, grid[i][j], ','); // Read comma-separated values into grid
         }
     }
 
-    for(int i = 0; i < x; i++)
-    {
-        for(int j = 0; j < y; j++)
-        {
-            cout << input[j][i];
-            if(j < y - 1) cout << ",";
-        }
-        cout << endl;
-    }
-    return 0;
 }
