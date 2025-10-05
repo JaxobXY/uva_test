@@ -59,6 +59,8 @@
   "files.associations": {
     "iostream": "cpp",
     "random": "cpp",
-    "usaco2020jancontestbronzeprob1wordprocessor": "cpp"
+    "usaco2020jancontestbronzeprob1wordprocessor": "cpp",
+    "cmath": "cpp",
+    "ostream": "cpp"
   }
 }
