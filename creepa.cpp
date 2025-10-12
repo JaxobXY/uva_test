@@ -13,7 +13,7 @@ int main() {
         // Move cursor to top-left without clearing the screen
         cout << "\033[H";
 
-        
+            cout<<"creepa "<<endl;
             cout << "██  ██"<< endl <<"  ██  "<< endl<<" ████ "<<endl<<" █  █ ";
 
 
