@@ -39,4 +39,5 @@ int main()
         takemovement(x,dis,curx,cury, stepsbefore, timeofentry[2001][2001]);
         stepsbefore++;
     }
+
 }
