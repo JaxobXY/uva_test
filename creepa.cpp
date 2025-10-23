@@ -5,8 +5,6 @@
 using namespace std;
 
 int main() {
-    const int width = 80;           
-    const int height = 24;          
     cout << "\033[2J";
 
     while (true) {
