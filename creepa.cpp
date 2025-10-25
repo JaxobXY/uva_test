@@ -7,8 +7,7 @@ using namespace std;
 int main() {
     cout << "\033[2J";
 
-    while (true) {
-        // Move cursor to top-left without clearing the screen
+    while (1) {
         cout << "\033[H";
 
             cout<<"creepa "<<endl;
