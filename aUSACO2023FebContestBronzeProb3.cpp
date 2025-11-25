@@ -11,37 +11,42 @@ using namespace std;
 
 int main()
 {
-    int n;
-    int k;
+    long long n;
+    long long k;
     cin >> n >> k;
-    vector<long long> days;
+    vector<long long> dayswatched;
     for(int i=0;i<n;i++)
     {
-        int temp;
+        long long temp;
         cin >> temp;
-        days.push_back(temp);
+        dayswatched.push_back(temp);
     }
-    int totalmoneyused = 0;
-    int daycount = 1;
-    while(daycount<n)
+    long long daycount = 0;
+    long long totalmoney = 0;
+    while(daycount < n)
     {
         bool extend = true;
-        int curcost = 1+k;
-        while(extend && daycount<n)
+        long long curmoney = 1+k;
+        while(extend == true)
         {
-            if(days[daycount] - days[daycount-1] + 1 <1 + k)
-            {
-                daycount += 1;
-                curcost += days[daycount] - days[daycount-1] + 1;
-            }
-            else
+            if(daycount == n - 1)
             {
                 extend = false;
             }
+            else if((dayswatched[daycount+1] - dayswatched[daycount])>k)
+            {
+                extend = false;
+            }
+            else
+            {
+                curmoney += (dayswatched[daycount+1] - dayswatched[daycount]);
+                daycount++;
+            }
         }
-        totalmoneyused+=curcost;
+        totalmoney += curmoney;
+        daycount++;
     }
-    cout << totalmoneyused;
+    cout << totalmoney << endl;
 
     return 0;
 }
