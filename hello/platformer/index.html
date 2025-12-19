@@ -1,18 +1,1260 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Neon Platformer – Giant Worlds</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Platformer – Movers + Rotators + Editor</title>
+  <style>
+    body { margin: 0; background: #111; color: #fff; font-family: sans-serif; }
+    canvas { display: block; margin: 0 auto; background: #222; }
+
+    #ui {
+      max-width: 920px;
+      margin: 8px auto;
+      text-align: center;
+    }
+
+    #menu, #editorUI, #mapBar, #hotbar {
+      margin-top: 12px;
+    }
+
+    button {
+      padding: 10px 18px;
+      font-size: 16px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+      background: #444;
+      color: #fff;
+      cursor: pointer;
+      min-width: 80px;
+      min-height: 44px;
+    }
+    button:hover { background: #666; }
+    button:active { background: #888; }
+
+    #dpad {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(60px, auto));
+      grid-template-rows: repeat(3, minmax(50px, auto));
+      gap: 10px;
+      justify-content: center;
+      margin-top: 12px;
+      align-items: center;
+    }
+    #upBtn    { grid-column: 3; grid-row: 1; }
+    #leftBtn  { grid-column: 2; grid-row: 2; }
+    #downBtn  { grid-column: 3; grid-row: 3; }
+    #rightBtn { grid-column: 4; grid-row: 2; }
+
+    #zoomInBtn  { grid-column: 1; grid-row: 2; }
+    #zoomOutBtn { grid-column: 5; grid-row: 2; }
+
+    #editorInfo, #mapLabel {
+      font-size: 14px;
+      margin-top: 4px;
+      color: #ccc;
+    }
+
+    #hotbar .hotBtn {
+      min-width: 70px;
+    }
+
+    #leftBtn, #rightBtn, #downBtn, #upBtn {
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-    <div id="ui">
-        World: <span id="world">1</span> | Lives: <span id="lives">3</span>
+  <canvas id="game" width="800" height="450"></canvas>
+
+  <div id="ui">
+    <div id="menu">
+      <button id="playBtn">Play</button>
+      <button id="editorBtn">Editor</button>
+      <button id="clearBtn">Clear Map</button>
     </div>
 
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="mapBar">
+      <button id="prevMapBtn">&lt; Prev Map</button>
+      <button id="nextMapBtn">Next Map &gt;</button>
+      <span id="mapLabel"></span>
+    </div>
 
-    <!-- Single JS file; you can split later if you want -->
-    <script src="game.js"></script>
+    <div id="editorUI" style="display:none;">
+      <div>
+        Editor fly mode: Move with A/D/←/→ and W/S/↑/↓ (avatar is magenta).<br>
+        Select a block in the hotbar, then click anywhere to paint tiles.<br>
+        Play mode: platformer with double jump, locks, keys, portals, spikes, pistons, movers; zoom with Q/E or Zoom+/Zoom−.<br>
+        Mover (M): back‑and‑forth platform (no rotate). Rotator (R): glued group that spins in place. G toggles glue, +/- distance for mover, Esc clears selection.
+      </div>
+      <div id="editorInfo"></div>
+
+      <div id="hotbar">
+        <button class="hotBtn" data-tile=".">Air</button>
+        <button class="hotBtn" data-tile="#">Block</button>
+        <button class="hotBtn" data-tile="K">Key</button>
+        <button class="hotBtn" data-tile="L">Lock</button>
+        <button class="hotBtn" data-tile="J">Jump</button>
+        <button class="hotBtn" data-tile="P">Portal</button>
+        <button class="hotBtn" data-tile="S">Spike</button>
+        <button class="hotBtn" data-tile="T">Piston</button>
+        <button class="hotBtn" data-tile="M">Mover</button>
+        <button class="hotBtn" data-tile="R">Rotator</button>
+      </div>
+    </div>
+
+    <div id="dpad">
+      <button id="zoomInBtn">Zoom +</button>
+      <button id="upBtn">Jump</button>
+      <button id="zoomOutBtn">Zoom −</button>
+      <button id="leftBtn">◀</button>
+      <button id="downBtn">▼</button>
+      <button id="rightBtn">▶</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const playBtn    = document.getElementById('playBtn');
+    const editorBtn  = document.getElementById('editorBtn');
+    const clearBtn   = document.getElementById('clearBtn');
+    const editorUI   = document.getElementById('editorUI');
+    const editorInfo = document.getElementById('editorInfo');
+
+    const prevMapBtn = document.getElementById('prevMapBtn');
+    const nextMapBtn = document.getElementById('nextMapBtn');
+    const mapLabel   = document.getElementById('mapLabel');
+
+    const upBtn      = document.getElementById('upBtn');
+    const leftBtn    = document.getElementById('leftBtn');
+    const downBtn    = document.getElementById('downBtn');
+    const rightBtn   = document.getElementById('rightBtn');
+    const zoomInBtn  = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+    const hotbar      = document.getElementById('hotbar');
+    const hotButtons  = hotbar.querySelectorAll('.hotBtn');
+
+    let mode = "game";
+
+    const input = { left: false, right: false, jump: false, down: false };
+
+    let cameraX = 0;
+    let cameraY = 0;
+    let cameraZoom = 1;
+    const minZoom = 0.5;
+    const maxZoom = 2.5;
+
+    let currentTileType = '#';
+
+    let activeMover   = null;
+    let activeRotator = null;
+    let gluePlacement = false;
+
+    function pressButton(btn, key) {
+      function handleDown() {
+        if (key === 'zoomIn') {
+          if (mode === "game") {
+            cameraZoom += 0.1;
+            if (cameraZoom > maxZoom) cameraZoom = maxZoom;
+          }
+        } else if (key === 'zoomOut') {
+          if (mode === "game") {
+            cameraZoom -= 0.1;
+            if (cameraZoom < minZoom) cameraZoom = minZoom;
+          }
+        } else {
+          input[key] = true;
+        }
+      }
+      function handleUp() {
+        if (key in input) input[key] = false;
+      }
+
+      btn.addEventListener('mousedown', handleDown);
+      btn.addEventListener('mouseup', handleUp);
+      btn.addEventListener('mouseleave', handleUp);
+
+      btn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        handleDown();
+      }, { passive: false });
+      btn.addEventListener('touchend', e => {
+        e.preventDefault();
+        handleUp();
+      }, { passive: false });
+      btn.addEventListener('touchcancel', e => {
+        e.preventDefault();
+        handleUp();
+      }, { passive: false });
+    }
+
+    pressButton(leftBtn,   'left');
+    pressButton(rightBtn,  'right');
+    pressButton(upBtn,     'jump');
+    pressButton(downBtn,   'down');
+    pressButton(zoomInBtn, 'zoomIn');
+    pressButton(zoomOutBtn,'zoomOut');
+
+    hotButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentTileType = btn.getAttribute('data-tile');
+        hotButtons.forEach(b => b.style.outline = "none");
+        btn.style.outline = "2px solid #fff";
+      });
+    });
+    hotButtons.forEach(b => { if (b.getAttribute('data-tile') === '#') b.style.outline = "2px solid #fff"; });
+
+    addEventListener('keydown', e => {
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA')  input.left  = true;
+      if (e.code === 'ArrowRight'|| e.code === 'KeyD')  input.right = true;
+      if (e.code === 'ArrowDown' || e.code === 'KeyS')  input.down  = true;
+      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') input.jump = true;
+
+      if (mode === "game") {
+        if (e.code === 'KeyQ') {
+          cameraZoom += 0.1;
+          if (cameraZoom > maxZoom) cameraZoom = maxZoom;
+        }
+        if (e.code === 'KeyE') {
+          cameraZoom -= 0.1;
+          if (cameraZoom < minZoom) cameraZoom = minZoom;
+        }
+      }
+
+      if (mode === "editor") {
+        if (e.code === 'KeyG') {
+          gluePlacement = !gluePlacement;
+        } else if (e.key === '+') {
+          if (activeMover) activeMover.pushDist += 10;
+        } else if (e.key === '-') {
+          if (activeMover) activeMover.pushDist = Math.max(10, activeMover.pushDist - 10);
+        } else if (e.key === 'Escape') {
+          activeMover = null;
+          activeRotator = null;
+          gluePlacement = false;
+        }
+      }
+    });
+
+    addEventListener('keyup', e => {
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA')  input.left  = false;
+      if (e.code === 'ArrowRight'|| e.code === 'KeyD')  input.right = false;
+      if (e.code === 'ArrowDown' || e.code === 'KeyS')  input.down  = false;
+      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') input.jump = false;
+    });
+
+    const tileSize   = 25;
+    const tilesWide  = 128;
+    const tilesHigh  = 72;
+
+    const levelWidth  = tilesWide * tileSize;
+    const levelHeight = tilesHigh * tileSize;
+
+    function createEmptyMapChars() {
+      const arr = [];
+      for (let y = 0; y < tilesHigh; y++) {
+        const row = [];
+        for (let x = 0; x < tilesWide; x++) row.push('.');
+        arr.push(row);
+      }
+      for (let x = 0; x < tilesWide; x++) {
+        arr[tilesHigh - 1][x] = '#';
+      }
+      return arr;
+    }
+
+    function buildDefaultLayout1(chars) {
+      const groundY = tilesHigh - 1;
+
+      chars[groundY - 3][10] = '#';
+      chars[groundY - 3][11] = '#';
+
+      chars[groundY - 6][15] = '#';
+      chars[groundY - 6][16] = '#';
+      chars[groundY - 7][15] = 'K';
+
+      chars[groundY - 1][7] = 'J';
+
+      for (let y = groundY - 4; y <= groundY - 1; y++) {
+        chars[y][25] = 'L';
+      }
+
+      chars[groundY - 1][40] = 'P';
+
+      for (let x = 45; x < 60; x++) {
+        chars[groundY][x] = '.';
+      }
+
+      chars[groundY - 1][100] = 'P';
+
+      chars[groundY - 4][95] = '#';
+      chars[groundY - 4][96] = '#';
+      chars[groundY - 6][105] = '#';
+      chars[groundY - 6][106] = '#';
+
+      for (let x = 12; x < 18; x++) chars[groundY][x] = 'S';
+      chars[groundY - 1][20] = 'T';
+    }
+
+    function buildDefaultLayout2(chars) {
+      const groundY = tilesHigh - 1;
+
+      for (let x = 5; x < 20; x++) chars[groundY][x] = '#';
+      chars[groundY - 1][8]  = 'J';
+      chars[groundY - 5][8]  = '#';
+      chars[groundY - 6][8]  = 'J';
+      chars[groundY - 10][8] = '#';
+
+      chars[groundY - 11][15] = 'K';
+      chars[groundY - 2][30]  = 'L';
+
+      chars[groundY - 12][8]  = 'P';
+      chars[groundY - 1][60]  = 'P';
+
+      for (let x = 55; x < 70; x++) chars[groundY - 3][x] = '#';
+      for (let x = 80; x < 90; x++) chars[groundY - 8][x] = '#';
+
+      for (let x = 10; x < 14; x++) chars[groundY][x] = 'S';
+      chars[groundY - 1][25] = 'T';
+    }
+
+    function makeMap(name, initFn) {
+      const mapChars = createEmptyMapChars();
+      if (initFn) initFn(mapChars);
+      const map = {
+        name,
+        mapChars,
+        platforms: [],
+        keys: [],
+        locks: [],
+        jumpPads: [],
+        portals: [],
+        spikes: [],
+        pistons: [],
+        movers: [],
+        rotators: []
+      };
+      rebuildObjectsFromMap(map);
+      return map;
+    }
+
+    let maps = [];
+    let currentMapIndex = 0;
+
+    function currentMap() {
+      return maps[currentMapIndex];
+    }
+
+    function rebuildObjectsFromMap(mapObj) {
+      mapObj.platforms = [];
+      mapObj.keys = [];
+      mapObj.locks = [];
+      mapObj.jumpPads = [];
+      mapObj.portals = [];
+      mapObj.spikes = [];
+      mapObj.pistons = [];
+      mapObj.movers   = [];
+      mapObj.rotators = [];
+
+      const chars = mapObj.mapChars;
+
+      // counters to give matching ids to keys and locks by order
+      let keyIdCounter  = 1;
+      let lockIdCounter = 1;
+
+      for (let y = 0; y < tilesHigh; y++) {
+        for (let x = 0; x < tilesWide; x++) {
+          const ch = chars[y][x];
+          const wx = x * tileSize;
+          const wy = y * tileSize;
+
+          if (ch === '#') {
+            mapObj.platforms.push({ x: wx, y: wy, w: tileSize, h: tileSize });
+          } else if (ch === 'K') {
+            mapObj.keys.push({
+              id: keyIdCounter++,
+              x: wx, y: wy, w: tileSize, h: tileSize,
+              collected: false
+            });
+          } else if (ch === 'L') {
+            mapObj.locks.push({
+              id: lockIdCounter++,
+              x: wx, y: wy, w: tileSize, h: tileSize,
+              open: false
+            });
+          } else if (ch === 'J') {
+            mapObj.jumpPads.push({ x: wx, y: wy, w: tileSize, h: tileSize, power: -22 });
+          } else if (ch === 'P') {
+            mapObj.portals.push({ x: wx, y: wy, w: tileSize, h: tileSize, targetIndex: -1, cooldown: 0 });
+          } else if (ch === 'S') {
+            mapObj.spikes.push({ x: wx, y: wy, w: tileSize, h: tileSize });
+          } else if (ch === 'T') {
+            mapObj.pistons.push({ x: wx, y: wy, w: tileSize, h: tileSize });
+          } else if (ch === 'M') {
+            mapObj.movers.push({
+              originTx: x,
+              originTy: y,
+              x: wx,
+              y: wy,
+              w: tileSize,
+              h: tileSize,
+              pushDist: 100,
+              groupTiles: [{ dx: 0, dy: 0, ch: 'M' }],
+              phase: 0,
+              curX: wx,
+              curY: wy,
+              prevX: wx,
+              prevY: wy
+            });
+          } else if (ch === 'R') {
+            mapObj.rotators.push({
+              originTx: x,
+              originTy: y,
+              x: wx,
+              y: wy,
+              w: tileSize,
+              h: tileSize,
+              angle: 0,
+              speed: 0.03,
+              groupTiles: [{ dx: 0, dy: 0, ch: 'R' }],
+              phase: 0,
+              curX: wx,
+              curY: wy,
+              prevX: wx,
+              prevY: wy
+            });
+          }
+        }
+      }
+
+      // 1‑1 portal pairing: portals are in deterministic scan order,
+      // so pair 0<->1, 2<->3, 4<->5, ...
+      if (mapObj.portals.length >= 2) {
+        for (let i = 0; i < mapObj.portals.length; i += 2) {
+          const j = i + 1;
+          if (j < mapObj.portals.length) {
+            mapObj.portals[i].targetIndex = j;
+            mapObj.portals[j].targetIndex = i;
+          }
+        }
+      }
+    }
+
+    function initMaps() {
+      const map0 = makeMap("Start", buildDefaultLayout1);
+      const map1 = makeMap("Empty", null);
+      const map2 = makeMap("Vertical", buildDefaultLayout2);
+      maps = [map0, map1, map2];
+      currentMapIndex = 0;
+      updateMapLabel();
+    }
+
+    function updateMapLabel() {
+      const m = currentMap();
+      mapLabel.textContent =
+        "Map: " + m.name + " (" + (currentMapIndex + 1) + "/" + maps.length + ")";
+    }
+
+    initMaps();
+
+    const basePlayerWidth  = tileSize;
+    const basePlayerHeight = tileSize;
+    const crouchHeight     = tileSize * 0.6;
+
+    const player = {
+      x: 2 * tileSize,
+      y: (tilesHigh - 4) * tileSize,
+      w: basePlayerWidth,
+      h: basePlayerHeight,
+      vx: 0,
+      vy: 0,
+      onGround: false,
+      jumpsUsed: 0,
+      maxJumps: 2,
+      knockTime: 0
+    };
+
+    function resetPlayer() {
+      player.x = 2 * tileSize;
+      player.y = (tilesHigh - 4) * tileSize;
+      player.vx = 0;
+      player.vy = 0;
+      player.onGround = false;
+      player.jumpsUsed = 0;
+      player.knockTime = 0;
+      player.w = basePlayerWidth;
+      player.h = basePlayerHeight;
+    }
+
+    const gravity = 0.8;
+    const moveSpeed = 4;
+    const jumpStrength = -14;
+
+    let jumpPressed = false;
+    let prevJumpInput = false;
+
+    function rectsOverlap(a, b) {
+      return (
+        a.x < b.x + b.w &&
+        a.x + a.w > b.x &&
+        a.y < b.y + b.h &&
+        a.y + a.h > b.y
+      );
+    }
+
+    function getGroupTileWorldRectRot(rot, t) {
+      const baseX = rot.curX;
+      const baseY = rot.curY;
+      const cx = baseX + rot.w / 2;
+      const cy = baseY + rot.h / 2;
+
+      const tx = baseX + t.dx * tileSize + tileSize / 2;
+      const ty = baseY + t.dy * tileSize + tileSize / 2;
+
+      const dx = tx - cx;
+      const dy = ty - cy;
+      const cos = Math.cos(rot.angle);
+      const sin = Math.sin(rot.angle);
+
+      const rx = cx + dx * cos - dy * sin;
+      const ry = cy + dx * sin + dy * cos;
+
+      const pad = 0.5;
+      return {
+        x: rx - tileSize / 2 - pad,
+        y: ry - tileSize / 2 - pad,
+        w: tileSize + pad * 2,
+        h: tileSize + pad * 2
+      };
+    }
+
+    function getSolids() {
+      const m = currentMap();
+      const solids = [];
+      for (const p of m.platforms) solids.push(p);
+      for (const l of m.locks) if (!l.open) solids.push(l);
+
+      // movers: only block tiles
+      for (const mv of m.movers) {
+        for (const t of mv.groupTiles) {
+          if (t.ch === '.' || t.ch === 'S' || t.ch === 'J' || t.ch === 'P') continue;
+          solids.push({
+            x: mv.curX + t.dx * tileSize,
+            y: mv.curY + t.dy * tileSize,
+            w: tileSize,
+            h: tileSize
+          });
+        }
+      }
+
+      // rotators: only block‑type tiles
+      for (const rt of m.rotators) {
+        for (const t of rt.groupTiles) {
+          if (t.ch === '.' || t.ch === 'S' || t.ch === 'J' || t.ch === 'P') continue;
+          solids.push(getGroupTileWorldRectRot(rt, t));
+        }
+      }
+
+      return solids;
+    }
+
+    let editorMouseDown = false;
+    canvas.addEventListener('mousedown', e => {
+      if (mode !== "editor") return;
+      if (e.button !== 0) return;
+      editorMouseDown = true;
+      editorClick(e);
+    });
+    canvas.addEventListener('mouseup', () => {
+      editorMouseDown = false;
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (mode !== "editor" || !editorMouseDown) return;
+      editorClick(e);
+    });
+
+    function screenToWorld(mx, my) {
+      const viewWidth  = canvas.width  / cameraZoom;
+      const viewHeight = canvas.height / cameraZoom;
+
+      const worldX = (mx - canvas.width / 2) / cameraZoom + (cameraX + viewWidth  / 2);
+      const worldY = (my - canvas.height / 2) / cameraZoom + (cameraY + viewHeight / 2);
+      return { x: worldX, y: worldY };
+    }
+
+    function findMoverAtTile(map, tx, ty) {
+      const wx = tx * tileSize;
+      const wy = ty * tileSize;
+      return map.movers.find(mv => mv.x === wx && mv.y === wy);
+    }
+
+    function findRotatorAtTile(map, tx, ty) {
+      const wx = tx * tileSize;
+      const wy = ty * tileSize;
+      return map.rotators.find(rt => rt.x === wx && rt.y === wy);
+    }
+
+    function editorClick(e) {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      const worldPos = screenToWorld(mx, my);
+      const tx = Math.floor(worldPos.x / tileSize);
+      const ty = Math.floor(worldPos.y / tileSize);
+
+      if (tx < 0 || tx >= tilesWide || ty < 0 || ty >= tilesHigh) return;
+
+      const m = currentMap();
+
+      if (!gluePlacement || (!activeMover && !activeRotator)) {
+        // preserve groupTiles across rebuild in editor
+        const savedMoverGroups = new Map();
+        for (const mv of m.movers) {
+          const key = `M:${mv.originTx},${mv.originTy}`;
+          savedMoverGroups.set(key, mv.groupTiles);
+        }
+        const savedRotGroups = new Map();
+        for (const rt of m.rotators) {
+          const key = `R:${rt.originTx},${rt.originTy}`;
+          savedRotGroups.set(key, rt.groupTiles);
+        }
+
+        m.mapChars[ty][tx] = currentTileType;
+        rebuildObjectsFromMap(m);
+
+        for (const mv of m.movers) {
+          const key = `M:${mv.originTx},${mv.originTy}`;
+          if (savedMoverGroups.has(key)) mv.groupTiles = savedMoverGroups.get(key);
+        }
+        for (const rt of m.rotators) {
+          const key = `R:${rt.originTx},${rt.originTy}`;
+          if (savedRotGroups.has(key)) rt.groupTiles = savedRotGroups.get(key);
+        }
+
+        activeMover = null;
+        activeRotator = null;
+
+        if (currentTileType === 'M') {
+          const mv = findMoverAtTile(m, tx, ty);
+          if (mv) { activeMover = mv; gluePlacement = true; }
+        } else if (currentTileType === 'R') {
+          const rt = findRotatorAtTile(m, tx, ty);
+          if (rt) { activeRotator = rt; gluePlacement = true; }
+        } else {
+          const mv = findMoverAtTile(m, tx, ty);
+          const rt = findRotatorAtTile(m, tx, ty);
+          if (mv) { activeMover = mv; gluePlacement = true; }
+          else if (rt) { activeRotator = rt; gluePlacement = true; }
+        }
+      } else {
+        // glue to mover or rotator
+        let obj = activeMover || activeRotator;
+        const rootTx = obj.originTx;
+        const rootTy = obj.originTy;
+        const dx = tx - rootTx;
+        const dy = ty - rootTy;
+
+        if (!obj.groupTiles) {
+          obj.groupTiles = [{ dx: 0, dy: 0, ch: obj === activeMover ? 'M' : 'R' }];
+        }
+        const existing = obj.groupTiles.find(t => t.dx === dx && t.dy === dy);
+
+        if (currentTileType === '.') {
+          if (existing && !(dx === 0 && dy === 0)) {
+            obj.groupTiles = obj.groupTiles.filter(t => t !== existing);
+          }
+        } else {
+          if (dx === 0 && dy === 0) {
+            obj.groupTiles[0].ch = (obj === activeMover ? 'M' : 'R');
+          } else if (existing) {
+            existing.ch = currentTileType;
+          } else {
+            obj.groupTiles.push({ dx, dy, ch: currentTileType });
+          }
+        }
+      }
+    }
+
+    playBtn.onclick = () => {
+      mode = "game";
+      editorUI.style.display = "none";
+      gluePlacement = false;
+      activeMover = null;
+      activeRotator = null;
+      resetPlayer();
+
+      const m = currentMap();
+
+      const savedMoverGroups = new Map();
+      for (const mv of m.movers) {
+        const key = `M:${mv.originTx},${mv.originTy}`;
+        savedMoverGroups.set(key, mv.groupTiles || [{ dx: 0, dy: 0, ch: 'M' }]);
+      }
+      const savedRotGroups = new Map();
+      for (const rt of m.rotators) {
+        const key = `R:${rt.originTx},${rt.originTy}`;
+        savedRotGroups.set(key, rt.groupTiles || [{ dx: 0, dy: 0, ch: 'R' }]);
+      }
+
+      rebuildObjectsFromMap(m);
+
+      for (const mv of m.movers) {
+        const key = `M:${mv.originTx},${mv.originTy}`;
+        if (savedMoverGroups.has(key)) mv.groupTiles = savedMoverGroups.get(key);
+        mv.curX = mv.x;
+        mv.curY = mv.y;
+        mv.prevX = mv.x;
+        mv.prevY = mv.y;
+        mv.phase = 0;
+      }
+      for (const rt of m.rotators) {
+        const key = `R:${rt.originTx},${rt.originTy}`;
+        if (savedRotGroups.has(key)) rt.groupTiles = savedRotGroups.get(key);
+        rt.curX = rt.x;
+        rt.curY = rt.y;
+        rt.prevX = rt.x;
+        rt.prevY = rt.y;
+        rt.phase = 0;
+      }
+    };
+
+    editorBtn.onclick = () => {
+      mode = "editor";
+      editorUI.style.display = "block";
+      player.vx = 0;
+      player.vy = 0;
+    };
+
+    clearBtn.onclick = () => {
+      const m = currentMap();
+      for (let y = 0; y < tilesHigh; y++) {
+        for (let x = 0; x < tilesWide; x++) {
+          m.mapChars[y][x] = '.';
+        }
+      }
+      for (let x = 0; x < tilesWide; x++) m.mapChars[tilesHigh - 1][x] = '#';
+      rebuildObjectsFromMap(m);
+      activeMover = null;
+      activeRotator = null;
+      gluePlacement = false;
+    };
+
+    prevMapBtn.onclick = () => {
+      currentMapIndex = (currentMapIndex - 1 + maps.length) % maps.length;
+      resetPlayer();
+      activeMover = null;
+      activeRotator = null;
+      gluePlacement = false;
+      updateMapLabel();
+    };
+
+    nextMapBtn.onclick = () => {
+      currentMapIndex = (currentMapIndex + 1) % maps.length;
+      resetPlayer();
+      activeMover = null;
+      activeRotator = null;
+      gluePlacement = false;
+      updateMapLabel();
+    };
+
+    function updateMovers() {
+      const m = currentMap();
+      const moveSpeed = 0.03;
+
+      for (const mv of m.movers) {
+        mv.prevX = mv.curX;
+        mv.prevY = mv.curY;
+
+        mv.phase += moveSpeed;
+        const offset = Math.sin(mv.phase) * mv.pushDist;
+        mv.curX = mv.x + offset;
+        mv.curY = mv.y;
+
+        mv.originTx = Math.round(mv.curX / tileSize);
+        mv.originTy = Math.round(mv.curY / tileSize);
+      }
+    }
+
+    function updateRotators() {
+      const m = currentMap();
+      for (const rt of m.rotators) {
+        rt.prevX = rt.curX;
+        rt.prevY = rt.curY;
+
+        rt.phase += rt.speed;
+        rt.angle = rt.phase;
+        rt.curX = rt.x;
+        rt.curY = rt.y;
+      }
+    }
+
+    function updateGame() {
+      const m = currentMap();
+
+      updateMovers();
+      updateRotators();
+
+      // ride movers under feet
+      let carrierDx = 0, carrierDy = 0;
+      const feetRect = {
+        x: player.x,
+        y: player.y + player.h,
+        w: player.w,
+        h: 1
+      };
+
+      for (const mv of m.movers) {
+        if (!mv.groupTiles) continue;
+        const dxMv = mv.curX - mv.prevX;
+        const dyMv = mv.curY - mv.prevY;
+        if (dxMv === 0 && dyMv === 0) continue;
+
+        for (const t of mv.groupTiles) {
+          if (t.ch === '.' || t.ch === 'S' || t.ch === 'J' || t.ch === 'P') continue;
+          const rect = {
+            x: mv.curX + t.dx * tileSize,
+            y: mv.curY + t.dy * tileSize,
+            w: tileSize,
+            h: tileSize
+          };
+          const floorRect = { x: rect.x, y: rect.y - 1, w: rect.w, h: rect.h + 1 };
+          if (rectsOverlap(feetRect, floorRect)) {
+            carrierDx = dxMv;
+            carrierDy = dyMv;
+            break;
+          }
+        }
+        if (carrierDx || carrierDy) break;
+      }
+
+      if (carrierDx || carrierDy) {
+        player.x += carrierDx;
+        player.y += carrierDy;
+      }
+
+      // NEW: side push from movers
+      for (const mv of m.movers) {
+        if (!mv.groupTiles) continue;
+        const dxMv = mv.curX - mv.prevX;
+        const dyMv = mv.curY - mv.prevY;
+        if (dxMv === 0 && dyMv === 0) continue;
+
+        for (const t of mv.groupTiles) {
+          if (t.ch === '.' || t.ch === 'S' || t.ch === 'J' || t.ch === 'P') continue;
+
+          const rect = {
+            x: mv.curX + t.dx * tileSize,
+            y: mv.curY + t.dy * tileSize,
+            w: tileSize,
+            h: tileSize
+          };
+
+          if (rectsOverlap(player, rect)) {
+            // horizontal push
+            if (dxMv !== 0) {
+              player.x += dxMv;
+            }
+            // optional vertical push
+            if (dyMv !== 0) {
+              player.y += dyMv;
+            }
+          }
+        }
+      }
+
+      if (player.knockTime > 0) player.knockTime--;
+
+      if (player.knockTime <= 0) {
+        player.vx = 0;
+        if (input.left)  player.vx = -moveSpeed;
+        if (input.right) player.vx =  moveSpeed;
+      }
+
+      const oldH = player.h;
+      if (input.down && player.knockTime <= 0) {
+        player.h = crouchHeight;
+      } else {
+        const solids = getSolids();
+        const standRect = {
+          x: player.x,
+          y: player.y - (basePlayerHeight - player.h),
+          w: player.w,
+          h: basePlayerHeight
+        };
+        let blocked = false;
+        for (const s of solids) {
+          if (rectsOverlap(standRect, s)) { blocked = true; break; }
+        }
+        if (!blocked) {
+          player.y = standRect.y;
+          player.h = basePlayerHeight;
+        }
+      }
+      if (player.h < oldH) {
+        player.y += (oldH - player.h);
+      }
+
+      const jumpInput = input.jump;
+      jumpPressed = jumpInput && !prevJumpInput;
+      prevJumpInput = jumpInput;
+
+      if (jumpPressed && player.knockTime <= 0) {
+        if (player.onGround && player.jumpsUsed === 0) {
+          player.vy = jumpStrength;
+          player.onGround = false;
+          player.jumpsUsed = 1;
+        } else if (!player.onGround && player.jumpsUsed < player.maxJumps) {
+          player.vy = jumpStrength;
+          player.jumpsUsed++;
+        }
+      }
+
+      player.vy += gravity;
+
+      const solidsX = getSolids();
+
+      player.x += player.vx;
+      for (const s of solidsX) {
+        if (rectsOverlap(player, s)) {
+          if (player.vx > 0) player.x = s.x - player.w;
+          else if (player.vx < 0) player.x = s.x + s.w;
+        }
+      }
+
+      player.y += player.vy;
+      player.onGround = false;
+      const solidsY = getSolids();
+      for (const s of solidsY) {
+        if (rectsOverlap(player, s)) {
+          const overlapBottom = (player.y + player.h) - s.y;
+          const overlapTop    = (s.y + s.h) - player.y;
+
+          if (player.vy > 0 && overlapBottom <= overlapTop) {
+            player.y = s.y - player.h;
+            player.vy = 0;
+            player.onGround = true;
+            player.jumpsUsed = 0;
+          } else if (player.vy < 0 && overlapTop < overlapBottom) {
+            player.y = s.y + s.h;
+            player.vy = 0;
+          }
+        }
+      }
+
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.w > levelWidth) player.x = levelWidth - player.w;
+      if (player.y + player.h > levelHeight) {
+        player.y = levelHeight - player.h;
+        player.vy = 0;
+        player.onGround = true;
+        player.jumpsUsed = 0;
+      }
+
+      const m2 = currentMap();
+
+      for (const key of m2.keys) {
+        if (!key.collected && rectsOverlap(player, key)) {
+          key.collected = true;
+        }
+      }
+      for (const lock of m2.locks) {
+        if (!lock.open) {
+          const key1 = m2.keys.find(k => k.id === lock.id);
+          if (key1 && key1.collected) lock.open = true;
+        }
+      }
+
+      for (const pad of m2.jumpPads) {
+        const feet = {
+          x: player.x,
+          y: player.y + player.h,
+          w: player.w,
+          h: 1
+        };
+        if (rectsOverlap(feet, pad) && player.vy >= 0) {
+          player.vy = pad.power;
+          player.onGround = false;
+          player.jumpsUsed = 1;
+        }
+      }
+
+      for (let i = 0; i < m2.portals.length; i++) {
+        const portal = m2.portals[i];
+        if (portal.cooldown > 0) portal.cooldown--;
+
+        if (portal.cooldown === 0 && rectsOverlap(player, portal) && portal.targetIndex !== -1) {
+          const target = m2.portals[portal.targetIndex];
+          if (target && target !== portal) {
+            player.x = target.x + target.w / 2 - player.w / 2;
+            player.y = target.y - player.h;
+            portal.cooldown = 20;
+            target.cooldown = 20;
+            break;
+          }
+        }
+      }
+
+      for (const s of m2.spikes) {
+        if (rectsOverlap(player, s)) {
+          resetPlayer();
+          break;
+        }
+      }
+
+      const pushTiles = 4;
+      const pushSpeed = (pushTiles * tileSize) / 10;
+      if (player.knockTime <= 0) {
+        for (const p of m2.pistons) {
+          if (rectsOverlap(player, p)) {
+            if (player.x + player.w / 2 < p.x + p.w / 2) {
+              player.vx = -pushSpeed;
+            } else {
+              player.vx =  pushSpeed;
+            }
+            player.knockTime = 10;
+            break;
+          }
+        }
+      }
+
+      // rotator hazards/jumppads
+      for (const rt of m2.rotators) {
+        if (!rt.groupTiles) continue;
+        for (const t of rt.groupTiles) {
+          const rect = getGroupTileWorldRectRot(rt, t);
+          if (t.ch === 'S') {
+            if (rectsOverlap(player, rect)) {
+              resetPlayer();
+              break;
+            }
+          } else if (t.ch === 'J') {
+            const feet = {
+              x: player.x,
+              y: player.y + player.h,
+              w: player.w,
+              h: 1
+            };
+            if (rectsOverlap(feet, rect) && player.vy >= 0) {
+              player.vy = -22;
+              player.onGround = false;
+              player.jumpsUsed = 1;
+            }
+          }
+        }
+      }
+    }
+
+    function updateEditorFly() {
+      const flySpeed = 6;
+
+      let vx = 0;
+      let vy = 0;
+      if (input.left)  vx -= flySpeed;
+      if (input.right) vx += flySpeed;
+      if (input.jump)  vy -= flySpeed;
+      if (input.down)  vy += flySpeed;
+
+      player.x += vx;
+      player.y += vy;
+
+      if (player.x < 0) player.x = 0;
+      if (player.y < 0) player.y = 0;
+      if (player.x + player.w > levelWidth)  player.x = levelWidth  - player.w;
+      if (player.y + player.h > levelHeight) player.y = levelHeight - player.h;
+    }
+
+    function updateCamera() {
+      const viewWidth  = canvas.width  / cameraZoom;
+      const viewHeight = canvas.height / cameraZoom;
+
+      cameraX = player.x + player.w / 2 - viewWidth  / 2;
+      cameraY = player.y + player.h / 2 - viewHeight / 2;
+
+      if (cameraX < 0) cameraX = 0;
+      if (cameraY < 0) cameraY = 0;
+      if (cameraX > levelWidth  - viewWidth)  cameraX = levelWidth  - viewWidth;
+      if (cameraY > levelHeight - viewHeight) cameraY = levelHeight - viewHeight;
+    }
+
+    function drawWorldAndPlayer() {
+      const m = currentMap();
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+
+      const viewWidth  = canvas.width  / cameraZoom;
+      const viewHeight = canvas.height / cameraZoom;
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(cameraZoom, cameraZoom);
+      ctx.translate(-(cameraX + viewWidth / 2), -(cameraY + viewHeight / 2));
+
+      ctx.fillStyle = "#222";
+      ctx.fillRect(0, 0, levelWidth, levelHeight);
+
+      ctx.fillStyle = "#555";
+      for (const p of m.platforms) {
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+      }
+
+      for (const lock of m.locks) {
+        if (!lock.open) {
+          ctx.fillStyle = "#8844ff";
+          ctx.fillRect(lock.x, lock.y, lock.w, lock.h);
+        }
+      }
+
+      for (const key of m.keys) {
+        if (!key.collected) {
+          ctx.fillStyle = "#ffd700";
+          ctx.fillRect(key.x + 5, key.y + 5, key.w - 10, key.h - 10);
+        }
+      }
+
+      for (const pad of m.jumpPads) {
+        ctx.fillStyle = "#00bfff";
+        ctx.fillRect(pad.x, pad.y, pad.w, pad.h);
+      }
+
+      for (const portal of m.portals) {
+        ctx.fillStyle = "#00ff88";
+        ctx.fillRect(portal.x, portal.y, portal.w, portal.h);
+      }
+
+      ctx.fillStyle = "#ff4444";
+      for (const s of m.spikes) {
+        ctx.beginPath();
+        const baseY = s.y + s.h;
+        ctx.moveTo(s.x, baseY);
+        ctx.lineTo(s.x + s.w / 2, s.y);
+        ctx.lineTo(s.x + s.w, baseY);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#aaaa00";
+      for (const p of m.pistons) {
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+      }
+
+      // movers (no rotation)
+      for (const mv of m.movers) {
+        for (const t of mv.groupTiles) {
+          const tx = mv.curX + t.dx * tileSize;
+          const ty = mv.curY + t.dy * tileSize;
+          let color = "#ff8800";
+          if (t.ch === '#') color = "#555";
+          else if (t.ch === 'S') color = "#ff4444";
+          else if (t.ch === 'K') color = "#ffd700";
+          else if (t.ch === 'L') color = "#8844ff";
+          else if (t.ch === 'J') color = "#00bfff";
+          else if (t.ch === 'P') color = "#00ff88";
+          else if (t.ch === 'T') color = "#aaaa00";
+          ctx.fillStyle = color;
+
+          if (t.ch === 'S') {
+            ctx.beginPath();
+            const baseY2 = ty + tileSize;
+            ctx.moveTo(tx, baseY2);
+            ctx.lineTo(tx + tileSize / 2, ty);
+            ctx.lineTo(tx + tileSize, baseY2);
+            ctx.closePath();
+            ctx.fill();
+          } else {
+            ctx.fillRect(tx, ty, tileSize, tileSize);
+          }
+        }
+      }
+
+      // rotators
+      for (const rt of m.rotators) {
+        const baseX = rt.curX;
+        const baseY = rt.curY;
+        const cx = baseX + rt.w / 2;
+        const cy = baseY + rt.h / 2;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rt.angle);
+        ctx.translate(-cx, -cy);
+
+        for (const t of rt.groupTiles) {
+          const tx = baseX + t.dx * tileSize;
+          const ty = baseY + t.dy * tileSize;
+          let color = "#ff8800";
+          if (t.ch === '#') color = "#555";
+          else if (t.ch === 'R') color = "#ff8800";
+          else if (t.ch === 'S') color = "#ff4444";
+          else if (t.ch === 'K') color = "#ffd700";
+          else if (t.ch === 'L') color = "#8844ff";
+          else if (t.ch === 'J') color = "#00bfff";
+          else if (t.ch === 'P') color = "#00ff88";
+          else if (t.ch === 'T') color = "#aaaa00";
+          ctx.fillStyle = color;
+
+          if (t.ch === 'S') {
+            ctx.beginPath();
+            const baseY2 = ty + tileSize;
+            ctx.moveTo(tx, baseY2);
+            ctx.lineTo(tx + tileSize / 2, ty);
+            ctx.lineTo(tx + tileSize, baseY2);
+            ctx.closePath();
+            ctx.fill();
+          } else {
+            ctx.fillRect(tx, ty, tileSize, tileSize);
+          }
+        }
+
+        ctx.restore();
+      }
+
+      ctx.fillStyle = mode === "editor" ? "#ff00ff" : "#0f0";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      ctx.restore();
+    }
+
+    function loop() {
+      if (mode === "game") {
+        updateGame();
+      } else {
+        updateEditorFly();
+      }
+      updateCamera();
+      drawWorldAndPlayer();
+
+      if (mode === "editor") {
+        if (activeMover) {
+          editorInfo.textContent =
+            "Mover selected | Dist: " + activeMover.pushDist +
+            " | Glue: " + (gluePlacement ? "ON" : "OFF") +
+            " | Controls: G glue, +/- distance, Esc clear.";
+        } else if (activeRotator) {
+          editorInfo.textContent =
+            "Rotator selected | Glue: " + (gluePlacement ? "ON" : "OFF") +
+            " | Controls: G glue, Esc clear.";
+        } else {
+          editorInfo.textContent =
+            "Editor fly. Map " + currentMap().name +
+            " | Avatar tile (" +
+            Math.floor(player.x / tileSize) + ", " +
+            Math.floor(player.y / tileSize) + ")";
+        }
+      }
+
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
 </body>
 </html>
+
+
+
+
+
