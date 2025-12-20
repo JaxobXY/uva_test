@@ -79,13 +79,13 @@ int main()
         if(valid == true)
         {
             validpermu.push_back(all_permutations[i]);
+            for(int i=0;i<8;i++)
+            {
+                fout << validpermu[0][i] << endl;
+            }
+            fin.close();
+            fout.close();
+            return 0;
         }
     }
-    for(int i=0;i<8;i++)
-    {
-        fout << validpermu[0][i] << endl;
-    }
-    fin.close();
-    fout.close();
-    return 0;
 }
