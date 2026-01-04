@@ -1,0 +1,58 @@
+body { margin: 0; background: #111; color: #fff; font-family: sans-serif; }
+canvas { display: block; margin: 0 auto; background: #222; }
+
+#ui {
+  max-width: 920px;
+  margin: 8px auto;
+  text-align: center;
+}
+
+#menu, #editorUI, #mapBar, #hotbar {
+  margin-top: 12px;
+}
+
+button {
+  padding: 10px 18px;
+  font-size: 16px;
+  margin: 5px;
+  border-radius: 8px;
+  border: none;
+  background: #444;
+  color: #fff;
+  cursor: pointer;
+  min-width: 80px;
+  min-height: 44px;
+}
+button:hover { background: #666; }
+button:active { background: #888; }
+
+#dpad {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(60px, auto));
+  grid-template-rows: repeat(3, minmax(50px, auto));
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+  align-items: center;
+}
+#upBtn    { grid-column: 3; grid-row: 1; }
+#leftBtn  { grid-column: 2; grid-row: 2; }
+#downBtn  { grid-column: 3; grid-row: 3; }
+#rightBtn { grid-column: 4; grid-row: 2; }
+
+#zoomInBtn  { grid-column: 1; grid-row: 2; }
+#zoomOutBtn { grid-column: 5; grid-row: 2; }
+
+#editorInfo, #mapLabel {
+  font-size: 14px;
+  margin-top: 4px;
+  color: #ccc;
+}
+
+#hotbar .hotBtn {
+  min-width: 70px;
+}
+
+#leftBtn, #rightBtn, #downBtn, #upBtn {
+  font-size: 18px;
+}

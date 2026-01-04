@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Platformer – Movers + Rotators + Editor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game" width="800" height="450"></canvas>
+
+  <div id="ui">
+    <div id="menu">
+      <button id="playBtn">Play</button>
+      <button id="editorBtn">Editor</button>
+      <button id="clearBtn">Clear Map</button>
+    </div>
+
+    <div id="mapBar">
+      <button id="prevMapBtn">&lt; Prev Map</button>
+      <button id="nextMapBtn">Next Map &gt;</button>
+      <span id="mapLabel"></span>
+    </div>
+
+    <div id="editorUI" style="display:none;">
+      <div>
+        Editor fly mode: Move with A/D/←/→ and W/S/↑/↓ (avatar is magenta).<br>
+        Select a block in the hotbar, then click anywhere to paint tiles.<br>
+        Play mode: platformer with double jump, locks, keys, portals, spikes, pistons, movers; zoom with Q/E or Zoom+/Zoom−.<br>
+        Mover (M): back‑and‑forth platform (no rotate). Rotator (R): glued group that spins in place. G toggles glue, +/- distance for mover, Esc clears selection.
+      </div>
+      <div id="editorInfo"></div>
+
+      <div id="hotbar">
+        <button class="hotBtn" data-tile=".">Air</button>
+        <button class="hotBtn" data-tile="#">Block</button>
+        <button class="hotBtn" data-tile="K">Key</button>
+        <button class="hotBtn" data-tile="L">Lock</button>
+        <button class="hotBtn" data-tile="J">Jump</button>
+        <button class="hotBtn" data-tile="P">Portal</button>
+        <button class="hotBtn" data-tile="S">Spike</button>
+        <button class="hotBtn" data-tile="T">Piston</button>
+        <button class="hotBtn" data-tile="M">Mover</button>
+        <button class="hotBtn" data-tile="R">Rotator</button>
+      </div>
+    </div>
+
+    <div id="dpad">
+      <button id="zoomInBtn">Zoom +</button>
+      <button id="upBtn">Jump</button>
+      <button id="zoomOutBtn">Zoom −</button>
+      <button id="leftBtn">◀</button>
+      <button id="downBtn">▼</button>
+      <button id="rightBtn">▶</button>
+    </div>
+  </div>
+
+  <!-- Order is important -->
+  <script src="constants.js"></script>
+  <script src="input.js"></script>
+  <script src="maps.js"></script>
+  <script src="player.js"></script>
+  <script src="editor.js"></script>
+  <script src="game.js"></script>
+  <script src="camera.js"></script>
+  <script src="render.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
