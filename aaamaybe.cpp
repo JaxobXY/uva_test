@@ -33,7 +33,7 @@ int main()
             }
             else if(ca<cb)
             {
-                cout <<((fa-a-b)/cb*ca)/cb*ca+ca-1+(fa-(((fa-a-b)/cb*ca)/cb*ca))/*swap*/ << endl;//not affect maybe wrong
+                cout <<((fa-a-b)/cb*ca)/cb*ca+ca-1+(fa-(((fa-a-b)/cb*ca)/cb*ca)) << endl;//not affect maybe wrong
             }
             else
             {
