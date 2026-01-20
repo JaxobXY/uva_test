@@ -17,7 +17,7 @@ void insert_ordered(vector<string>& v, vector<int>& count, vector<vector<bool>>&
         count.insert(count.begin() + index, 1);
         
         // Insert a new row in grid
-        vector<bool> new_row(max_n, false);
+        vector<bool> new_row(max_n, true);
         grid.insert(grid.begin() + index, new_row);
     }
     else {
@@ -28,14 +28,15 @@ void insert_ordered(vector<string>& v, vector<int>& count, vector<vector<bool>>&
     // 4. Mark the grid for the specific appearance of this substring
     // We mark the positions of all 3 characters
     if (pos + 2 < max_n) {
-        grid[index][pos] = true;
-        grid[index][pos + 1] = true;
-        grid[index][pos + 2] = true;
+        grid[index][pos] = false;
+        grid[index][pos + 1] = false;
+        grid[index][pos + 2] = false;
     }
 }
 
 int main() {
-
+    vector<string> answers;
+    int answercount = 0;;
     vector<int> count;
     vector<string> vec;
 
@@ -47,7 +48,7 @@ int main() {
     //
     //
 
-    vector<vector<bool>> grid = {true};
+    vector<vector<bool>> grid = {};
     int n, f;
     string moo;
 
@@ -66,6 +67,7 @@ int main() {
         // Case 2: AAA && BAA
         else if ((moo[0] == moo[1] && moo[1] == moo[2]) || (moo[0] != moo[1])) 
         {
+            cout << "25" << endl ;
             for (int i = 0; i < 26; i++) 
             {
                 char current_letter = (char)('a' + i);
@@ -97,7 +99,8 @@ int main() {
     for (size_t i = 0; i < vec.size(); i++) {
         if (count[i] >= f) 
         {
-            cout << vec[i] << endl;
+            answercount++;
+            answers.push_back(vec[i]);
         }
     }
 
@@ -108,26 +111,35 @@ int main() {
                 if (grid[i][j] == true && grid[i][j+1] == true && grid[i][j+2] == true)
                 {
                     //1&2
-                    if(moo[j] == vec[0] && moo[j+1] == vec[1])
+                    if(moo[j] == vec[i][0] && moo[j+1] == vec[i][1])
                     {
-                        cout << vec[i] << endl;
+                        answercount++;
+                        answers.push_back(vec[i]);
                         break;
                     }
                     //2&3
-                    else if(moo[j+1] == vec[1] && moo[j+2] == vec[2])
+                    else if(moo[j+1] == vec[i][1] && moo[j+2] == vec[i][2])
                     {
-                        cout << vec[i] << endl;
+                        answercount++;
+                        answers.push_back(vec[i]);
                         break;
                     }
                     //1&3
-                    else if(moo[j] == vec[0] && moo[j+2] == vec[2])
+                    else if(moo[j] == vec[i][0] && moo[j+2] == vec[i][2])
                     {
-                        cout << vec[i] << endl;
+                        answercount++;
+                        answers.push_back(vec[i]);
                         break;
                     }
                 }
             }
         }
+    }
+    cout << answercount << endl;
+    sort(answers.begin(), answers.end());;
+    for(int i=0;i<answercount;i++)
+    {
+        cout << answers[i] << endl;
     }
 
     return 0;
