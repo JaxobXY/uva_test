@@ -1,10 +1,11 @@
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
 #include <map>
 #include <algorithm>
 #include <set>
+#include <utility>
+#include <unordered_set>
 
 using namespace std;
 
@@ -13,11 +14,14 @@ using namespace std;
 int main()
 {
     int n;
-    ifstream fin("");
-    ofstream fout("");
-    fin >> n;
-    fin.close();
-    fout.close();
+    
+    cin >> n;
+
+    for(int i=0;i<n;i++)
+    {
+
+    }
+    
     return 0;
 
 }
