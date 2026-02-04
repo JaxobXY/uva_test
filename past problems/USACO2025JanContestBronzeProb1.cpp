@@ -39,7 +39,7 @@ int logic(int l,int a,int b,vector<vector<char>>& grid,vector<pair<int,int>>& no
         }
         else if(grid[nonw[j].first][nonw[j].second] == 'B')
         {
-            //previous spot+current
+            //previousous spot+current
             if((nonw[j].first-b)>=0 && (nonw[j].second-a)>=0)
             {
                 if(a>0 || b>0)
@@ -75,7 +75,7 @@ int logic(int l,int a,int b,vector<vector<char>>& grid,vector<pair<int,int>>& no
         }
         else if(grid[nonw[j].first][nonw[j].second] == 'b')
         {
-            //previous spot+current
+            //previousous spot+current
             if((nonw[j].first-b)>=0 && (nonw[j].second-a)>=0)
             {
                 if(a>0 || b>0)
