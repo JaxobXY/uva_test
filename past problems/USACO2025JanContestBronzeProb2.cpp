@@ -46,13 +46,7 @@ int main()
         }
     }
 
-    // for(int i=n;i>0;i--)
-    // {
-    //     if(cnt[input[i]] >= 2)
-    //     {
-    //         ans += (previous[i]-1);
-    //     }
-    // }
+    
     if(debug)
     {
         cout << "ans:" << ans << endl;
