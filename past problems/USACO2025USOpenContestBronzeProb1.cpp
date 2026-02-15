@@ -37,7 +37,6 @@ int main()
     //cout << endl;
      for(int i=0;i<t;i++)
     {
-        int count = 0;
         int a,b;
         cin >> a >> b;
         a--;

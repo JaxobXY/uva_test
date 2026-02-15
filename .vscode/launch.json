@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/JacobC/Documents/uva_test",
-      "program": "/Users/JacobC/Documents/uva_test/build/Debug/outDebug"
+      "cwd": "/Users/JacobC/Documents/uva_test/hello",
+      "program": "/Users/JacobC/Documents/uva_test/hello/build/Debug/outDebug"
     }
   ]
 }

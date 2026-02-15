@@ -60,7 +60,7 @@ int main()
         {
             if(win[a].size() == 0)
             {
-                cout << 0;
+                cout << 0 << endl;
                 continue;
             }
             count = win[a].size() * (n - win[a].size()) * 2 +1;
@@ -73,7 +73,7 @@ int main()
         }
         if(cache[a][b]!=-1)
         {
-            cout << cache[a][b];
+            cout << cache[a][b] << endl;
         }
         for(int j=0;j<win[a].size();j++)
         {
@@ -81,7 +81,7 @@ int main()
             //{
             //    count +=1;
             //}
-            if(matrix[a][j] == 1 && matrix[b][j] == 1)
+            if(matrix[b][win[a][j]] == 1)
             {
                 count++;
             }
@@ -90,7 +90,7 @@ int main()
         {
             int m = count;
             int m2 = n - count;
-            count = m * m2 *2 + combination(m) * 2 +n;
+            count = m * m2 *2 + combination(m) * 2 + m;
             cout << count << endl;
             cache[a][b] = count;
         }
