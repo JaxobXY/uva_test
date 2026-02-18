@@ -11,6 +11,7 @@ int x = 25;
 int y = 25;
 #define gridsize 50
 #define sight 3
+#define tilesize 1
 char grid[gridsize][gridsize]; // Declaration
 string item[gridsize][gridsize] = {"blank"}; // Declaration
 bool barrier[gridsize][gridsize] = {false};
@@ -198,4 +199,4 @@ int main()
     // restore terminal settings
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return 0;
-} 
+}
