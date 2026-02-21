@@ -41,6 +41,17 @@ int main()
         {
             day = 1;
             r=i-1;
+            if(r==l)
+            {
+                maxdays.push_back(1);
+                if(day<minmaxday)
+                {
+                    minmaxday=day;
+                }
+                l=-1;
+                r=-1;
+                continue;
+            }
             groups.push_back(make_pair(l == 0 || r == n-1, make_pair(l,r)));
             if(l == 0 || r == n-1)
             {
@@ -69,10 +80,22 @@ int main()
             r=-1;
         }
     }
+    day = 0;
     if(r==-2)
     {
         r=n-1;
         groups.push_back(make_pair(l == 0 || r == n-1, make_pair(l,r)));
+        if(r==l)
+        {
+            maxdays.push_back(1);
+            if(day<minmaxday)
+            {
+                minmaxday=1;
+            }
+            l=-1;
+            r=-1;
+            goto skip;
+        }
         if(l == 0 || r == n-1)
         {
             maxdays.push_back(r-l+1);
@@ -96,9 +119,37 @@ int main()
             minmaxday=day;
         }
     }
+    skip:
     int total = 0;
+    if(groups.size()==0)
+    {
+        cout << 0;
+        return 0;
+    }
+    if(groups.size() == 1)
+    {
+        if((groups[0].second.second-groups[0].second.first+1)%2 == 0)
+        {
+            if(groups[0].second.second == n-1 && groups[0].second.first==0)
+            {
+                cout << 1;
+                return 0;
+            }
+            cout << 2;
+            return 0;
+        }
+        else
+        {
+            cout << 1;
+            return 0;
+        }
+
+    }
+
+
     for(int i=0;i<groups.size();i++)
     {
+
         if(groups[i].first == true)
         {
             int len = groups[i].second.second-groups[i].second.first+1;
@@ -149,6 +200,7 @@ int main()
                         cows+=1;
                     }
                 }
+                total+=cows;
             }
         }
     }
