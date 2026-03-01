@@ -7,7 +7,7 @@
 using namespace std;
 
 #define gridsize 50
-#define sight 3
+#define sight 50
 
 // PLAYER POSITIONS
 int x1 = 25, y1 = 25;      
@@ -23,9 +23,9 @@ int moveCooldownP2 = 0;
 const int MOVE_COOLDOWN_TICKS = 1;
 
 // HEALTH SYSTEM
-int p1Health = 100;
-int p2Health = 100;
-const int MAX_HEALTH = 100;
+int p1Health = 1000;
+int p2Health = 1000;
+const int MAX_HEALTH = 1000;
 
 // TEMPORARY ATTACK VISUALS
 int attackTick[gridsize][gridsize] = {0};
@@ -141,8 +141,8 @@ void updateAttacks(int tick)
 
 void printgrid(ofstream &fout)
 {
-    int height = 4;
-    int width = 8;
+    int height = 1;
+    int width = 1;
 
     // **MOVING CAMERA** - follows players dynamically
     int cx = (x1 + x2) / 2;
@@ -290,3 +290,4 @@ int main()
     else cout << "Game ended.\n";
     return 0;
 }
+ 
