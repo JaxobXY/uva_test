@@ -1,7 +1,3 @@
-//11-15 time out
-//Inputs 3-5: N≤103, the answer is at most 103
-//Inputs 6-10: N≤103
-//Inputs 11-15: No additional constraints.
 #include <iostream>
 #include <fstream>
 #include <string>
