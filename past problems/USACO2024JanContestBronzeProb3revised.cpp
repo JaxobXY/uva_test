@@ -1,13 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <vector>
-#include <map>
-#include <algorithm>
-#include <set>
-#include <utility>
-#include <unordered_set>
-
 using namespace std;
 using int64 = long long;
 
@@ -15,14 +8,14 @@ using int64 = long long;
 int main()
 {
     ios::sync_with_stdio(0); cin.tie(0);
-    ifstream fin("3.in");
+    // ifstream fin("3.in");
     int n;
     
-    fin >> n;
+    cin >> n;
     vector<int64> input(n,0);
     for(int i=0;i<n;i++)
     {
-        fin >> input[i];
+        cin >> input[i];
     }
     int64 diag = -input[0];
     int64 col = -input[0];
@@ -36,11 +29,11 @@ int main()
         else
         {
             col=diag+col;
-            diag+=input[i]+col;
             counter+=abs(input[i]+col);
-            cout << "counter += " << abs(input[i] + col);
-            col+=input[i];
-            cout << "col: " << col << " diag: " << diag << endl;
+            diag+=-(input[i]+col);
+            //cout << "counter += " << abs(input[i] + col);
+            col+=-(input[i]+col);
+            //cout << "col: " << col << " diag: " << diag << endl;
         }
     }
     cout << counter;

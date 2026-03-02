@@ -1,11 +1,5 @@
 #include <iostream>
-#include <string>
 #include <vector>
-#include <map>
-#include <algorithm>
-#include <set>
-#include <utility>
-#include <unordered_set>
 
 using namespace std;
 
@@ -38,7 +32,7 @@ int main()
     int speed = 1;
     int count = 0;
     int counter = 0;
-    while(pos>0 && pos<=n && counter <=n+1)
+    while(pos>0 && pos<=n && counter <=500000)
     {
 
         //jump pad
