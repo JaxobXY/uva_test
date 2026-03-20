@@ -115,11 +115,11 @@ int main()
                 ineval.push_back(eval1);
                 if(ltrue==-1 && eval1 == true)
                 {
-                    ltrue=i;
+                    ltrue=groups.size()+1;
                 }
                 if(eval1 == true)
                 {
-                    rtrue=i;
+                    rtrue=groups.size()+1;
                 }
                 eval1=true;
             }
@@ -130,6 +130,14 @@ int main()
     temp.clear();
     grouplr.push_back(lr);
     ineval.push_back(eval1);
+    if(eval1 == true && ltrue == -1)
+    {
+        ltrue = groups.size()+1;
+    }
+    if(eval1 == true)
+    {
+        rtrue = groups.size()+1;
+    }
 
 
     int l,r;
@@ -142,38 +150,75 @@ int main()
         cin >> l >> r >> input;
         l--;
         r--;
-        if(rtrue>r && rtrue!=-1 && ltrue<l && ltrue!=-1 && input == "true")
+
+
+
+        //find lr groupl and groups=r
+        int counter=0;
+        bool exit = false;
+        int groupl=-1 , groupr=-1;
+        while(counter<groups.size() && exit)
+        {
+            if(r>grouplr[counter].second>l && grouplr[counter].first<l)
+            {
+                groupl=counter;
+            }
+            if(l<grouplr[counter].first<r && grouplr[counter].second>r)
+            {
+                groupr=counter;
+                exit=true;
+            }
+        }
+        if(exit=false)
+        {
+            if(groupl==-1)
+            {
+                groupl=groups.size()-1;
+            }
+            if(groupr==-1)
+            {
+                groupr=groups.size()-1;
+            }
+        }
+
+
+
+
+        if(rtrue>groupr && rtrue!=-1 && ltrue<groupl && ltrue!=-1 && input == "true")
         {
             cout <<'Y';
             outputt.push_back('Y');
-            goto cont;
+            cout << 1 << endl;
+            continue;
         }
-        else if(rtrue>r && rtrue!=-1 && ltrue<l && ltrue!=-1 && input == "false")
+        else if(rtrue>groupr && rtrue!=-1 && ltrue<groupl && ltrue!=-1 && input == "false")
         {
             cout <<'N';
             outputt.push_back('N');
-            goto cont;
+            cout << 2 << endl;
+            continue;
         }
-        //optimization part
+        // optimization part
 
 
-        
+         
         for(int j=0; j<grouplr.size();j++)
         {
             if(grouplr[j].second<l || grouplr[j].first>r)
             {
-                if(ineval[j]==true && input == "true")
-                {
-                    cout <<'Y';
-                    outputt.push_back('Y');
-                    goto cont;
-                }
-                else if(ineval[j]==true && input == "false")
-                {
-                    cout <<'N';
-                    outputt.push_back('N');
-                    goto cont;
-                }
+                // if(ineval[j]==true && input == "true")
+                // {
+                //     cout <<'Y';
+                //     outputt.push_back('Y');
+                //     goto cont;
+                // }
+                // else if(ineval[j]==true && input == "false")
+                // {
+                //     cout <<'N';
+                //     outputt.push_back('N');
+                //     goto cont;
+                // }
+                continue;
             }
             else
             {
@@ -187,7 +232,7 @@ int main()
                             k=r;
                         }
                     }
-                    else if(input == "true" && stringg[k] == 0)
+                    else if((k<l || k>r) && input == "true" && stringg[k] == 0)
                     {
                         bad=true;
                         k=r;
@@ -206,15 +251,19 @@ int main()
             {
                 cout << "N";
                 outputt.push_back('N');
+                cout << 3 << endl;
                 continue;
             }
             cout << "Y";
             outputt.push_back('Y');
+            cout << 4 << endl;
+            continue;
         }
         else
         {
             cout << "Y";
             outputt.push_back('Y');
+            cout << 5 << endl;
             continue;
         }
     }
