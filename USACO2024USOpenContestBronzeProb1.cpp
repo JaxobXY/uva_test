@@ -115,11 +115,11 @@ int main()
                 ineval.push_back(eval1);
                 if(ltrue==-1 && eval1 == true)
                 {
-                    ltrue=groups.size()+1;
+                    ltrue=groups.size()-1;
                 }
                 if(eval1 == true)
                 {
-                    rtrue=groups.size()+1;
+                    rtrue=groups.size()-1;
                 }
                 eval1=true;
             }
@@ -132,11 +132,11 @@ int main()
     ineval.push_back(eval1);
     if(eval1 == true && ltrue == -1)
     {
-        ltrue = groups.size()+1;
+        ltrue = groups.size()-1;
     }
     if(eval1 == true)
     {
-        rtrue = groups.size()+1;
+        rtrue = groups.size()-1;
     }
 
 
@@ -150,26 +150,35 @@ int main()
         cin >> l >> r >> input;
         l--;
         r--;
-
+        if(l==0 && r==n-1)
+        {
+            cout << 'Y';
+            // cout << 10 << endl;
+            continue;
+        }
 
 
         //find lr groupl and groups=r
         int counter=0;
         bool exit = false;
         int groupl=-1 , groupr=-1;
-        while(counter<groups.size() && exit)
+        while(counter<groups.size() && !exit)
         {
-            if(r>grouplr[counter].second>l && grouplr[counter].first<l)
+            // cout << grouplr[counter].first << " " << grouplr[counter].second << endl;
+            if(grouplr[counter].first <= l && l <= grouplr[counter].second && groupl == -1)
             {
                 groupl=counter;
+                // cout << "ran" << endl;
             }
-            if(l<grouplr[counter].first<r && grouplr[counter].second>r)
+            if(grouplr[counter].first <= r && r <= grouplr[counter].second)
             {
                 groupr=counter;
                 exit=true;
             }
+            counter++;
         }
-        if(exit=false)
+
+        if(exit==false)
         {
             if(groupl==-1)
             {
@@ -184,18 +193,18 @@ int main()
 
 
 
-        if(rtrue>groupr && rtrue!=-1 && ltrue<groupl && ltrue!=-1 && input == "true")
+        if((ltrue>groupr || rtrue<groupl && rtrue!=-1) && input == "true")
         {
             cout <<'Y';
-            outputt.push_back('Y');
-            cout << 1 << endl;
+            // outputt.push_back('Y');
+            // cout << 1 << endl;
             continue;
         }
-        else if(rtrue>groupr && rtrue!=-1 && ltrue<groupl && ltrue!=-1 && input == "false")
+        else if((ltrue>groupr || rtrue<groupl && rtrue!=-1) && input == "false")
         {
             cout <<'N';
-            outputt.push_back('N');
-            cout << 2 << endl;
+            // outputt.push_back('N');
+            // cout << 2 << endl;
             continue;
         }
         // optimization part
@@ -250,20 +259,20 @@ int main()
             if(bad)
             {
                 cout << "N";
-                outputt.push_back('N');
-                cout << 3 << endl;
+                // outputt.push_back('N');
+                // cout << 3 << endl;
                 continue;
             }
             cout << "Y";
-            outputt.push_back('Y');
-            cout << 4 << endl;
+            // outputt.push_back('Y');
+            // cout << 4 << endl;
             continue;
         }
         else
         {
             cout << "Y";
-            outputt.push_back('Y');
-            cout << 5 << endl;
+            // outputt.push_back('Y');
+            // cout << 5 << endl;
             continue;
         }
     }
