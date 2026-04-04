@@ -1,41 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//curproblem 55false
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -134,7 +96,7 @@ int main()
     {
         ltrue = groups.size()-1;
     }
-    if(eval1 == true)
+     if(eval1 == true)
     {
         rtrue = groups.size()-1;
     }
@@ -168,7 +130,7 @@ int main()
             if(grouplr[counter].first <= l && l <= grouplr[counter].second && groupl == -1)
             {
                 groupl=counter;
-                // cout << "ran" << endl;
+                //cout << "ran" << endl;
             }
             if(grouplr[counter].first <= r && r <= grouplr[counter].second)
             {
@@ -195,7 +157,7 @@ int main()
 
         if((ltrue>groupr || rtrue<groupl && rtrue!=-1) && input == "true")
         {
-            cout <<'Y';
+            cout << 'Y';
             // outputt.push_back('Y');
             // cout << 1 << endl;
             continue;
@@ -236,6 +198,7 @@ int main()
                     if((k<l || k>r) && stringg[k]==0)
                     {
                         reppartfalse = true;
+                        // cout << "reppartfalse=true";
                         if(k<r)
                         {
                             k=r;
@@ -244,6 +207,7 @@ int main()
                     else if((k<l || k>r) && input == "true" && stringg[k] == 0)
                     {
                         bad=true;
+                        // cout << "bad=true" << endl;
                         k=r;
                     }
                 }
@@ -256,21 +220,28 @@ int main()
         }
         else if(reppartfalse == true)
         {
+            if(input == "true")
+            {
+                cout << 'N';
+                // outputt.push_back('N');
+                // cout << 7 << endl;
+                continue;
+            }
             if(bad)
             {
-                cout << "N";
+                cout << 'N';
                 // outputt.push_back('N');
                 // cout << 3 << endl;
                 continue;
             }
-            cout << "Y";
+            cout << 'Y';
             // outputt.push_back('Y');
             // cout << 4 << endl;
             continue;
         }
         else
         {
-            cout << "Y";
+            cout << 'Y';
             // outputt.push_back('Y');
             // cout << 5 << endl;
             continue;
