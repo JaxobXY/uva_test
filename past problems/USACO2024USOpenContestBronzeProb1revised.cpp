@@ -20,10 +20,20 @@ int main()
     vector<vector<int>> groups;
     vector<pair<int, int>> grouplr;
     vector<pair<int, int>> groupf;
+
+
     //group
     vector<int> temp;
     vector<bool> ineval;
+
+
+    //groupid
+    vector<int> groupid(n,-1);
     pair<int, int> lr = {-1,-1};
+    int counter = 0;
+
+
+
     int last;
     vector<char> outputt;
     int rtrue=-1;
@@ -47,6 +57,7 @@ int main()
                 {
                     lr.first =  i;
                 }
+                groupid[i]=counter;
             }
             else
             {
@@ -64,6 +75,7 @@ int main()
                 rfalse=i;
             }
             lr.second = i; 
+            groupid[i]=counter;
         }
         else
         {
@@ -92,6 +104,7 @@ int main()
                 eval1=true;
                 rfalse=-1;
                 lfalse=-1;
+                counter++;
             }
         }
     }
@@ -127,8 +140,8 @@ int main()
             // cout << 6 << " " << i << endl;
             continue;
         }
-        if((grouplr[rtrue].first != -1 && grouplr[rtrue].first > r) 
-        || (grouplr[ltrue].second != -1 && grouplr[ltrue].second < l))
+        if((rtrue != -1 && grouplr[rtrue].first != -1 && grouplr[rtrue].first > r) 
+        || (ltrue != -1 && grouplr[ltrue].second != -1 && grouplr[ltrue].second < l))
         {
             if(input == "true")
             {
@@ -151,32 +164,21 @@ int main()
         }
         else//want true, outside false
         {
-            for(int j=0;j<groups.size();j++)
+            if((groupf[groupid[l]].first<l && groupf[groupid[l]].first != -1) || (groupf[groupid[r]].second>r && groupf[groupid[r]].second != -1))
             {
-                if(grouplr[j].second<l)
-                {
-                    continue;
-                }
-                else if(grouplr[j].first>r)
-                {
-                    continue;
-                }
-                else if((groupf[j].first<l && groupf[j].first != -1) || (groupf[j].second>r && groupf[j].second != -1))
-                {
-                    cout << "N";
-                    // cout << 2 << " " << i << endl;
-                    goto cont;
-                }
+                cout << "N";
+                // cout << 2 << " " << i << endl;
+                continue;
             }
-            cout << "Y";
-            // cout << 1 << " " << i << endl;
-            continue;
+            else
+            {
+                cout << "Y";
+                // cout << 1 << " " << i << endl;
+                continue;
+            }
         }
-        if(0)
-        {
-            cont:
-            continue;
-        }
+        
+
     }
     return 0;
 
