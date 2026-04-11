@@ -160,7 +160,7 @@ int main() {
             move_over(a, b);
         } else if(action1=="pile" && action2=="onto") {
             pile_onto(a, b);
-        } eles {
+        } else {
             // DEBUG:
             cout << "Unknown action " << action1 << ", " << action2 << endl;
             continue;
