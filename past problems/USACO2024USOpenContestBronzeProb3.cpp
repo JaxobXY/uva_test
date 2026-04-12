@@ -40,6 +40,10 @@ int main()
             {
                 // cout << "there are two ones right now" << endl;
             }
+            else if(list[j]>n)
+            {
+                condition=false;
+            }
             else//too much of any number. 
             {
                 condition = false;
@@ -56,10 +60,10 @@ int main()
         {
             goto cont;
         }
-        // if(list[n-1]!=1)
-        // {
-            // goto cont; 
-        // }
+        if(list[n-2]!=1)
+        {
+            goto cont; 
+        }
         if(0==1)
         {
             cont:

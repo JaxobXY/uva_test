@@ -1,3 +1,21 @@
+//goes with
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//USACO2024USOpenContestBronzeProb3.cpp
+
+
 #include <iostream>
 #include <vector>
 #include <numeric>   // for std::iota
