@@ -1,4 +1,5 @@
 #include <iostream>
+//#include <fstream>
 #include <vector>
 #include <string>
 #include <map>
@@ -16,7 +17,9 @@ using namespace std;
 int main()
 {
     ios::sync_with_stdio(0); cin.tie(0);
-    int64 t;
+    // ifstream fin("4.in");
+    // ofstream fout("output.txt");
+    int t;
     
     cin >> t;
 
@@ -26,8 +29,8 @@ int main()
         cin >> a >> b >> ca >> cb >> fa;
         int64 atarget, btarget;
         //how many a and b right before overflow.
-        atarget=fa-1-a;
-        btarget=cb;
+        atarget=fa-1;
+        btarget=cb-1;
         int64 needed=0;
         bool bbig;
         if(a>=fa || a+(b/cb)*ca>fa)
@@ -39,10 +42,34 @@ int main()
         {
             bbig=true;
         }
-        //convert
+        //convert b to a right now
         a=a+(b/cb)*ca;
-        b=(b/cb)*cb;
-        cout << needed << endl;
+        b=b-(b/cb)*cb;
+        // cout << "a:" << a << " b:" << b << endl;
+        if(bbig)//a->atarget use b
+        {
+            int64 aequation=(atarget-a)/ca*cb;
+            needed+=aequation;
+            needed-=min(b,aequation);
+            b-=min(b,aequation);
+            a+=(atarget-a)/ca*ca;
+            if(atarget-a>0)
+            {
+                needed+=atarget-a;
+            }
+            a=atarget;
+        }
+        else//a->atarget use a
+        {
+            a=atarget;
+            needed+=atarget-a;
+        }
+        // b->btarget use b
+        if(btarget-b>0)
+        {
+            needed+=btarget-b;
+        }
+        cout << needed+1 << endl;
     }
     
     return 0;
