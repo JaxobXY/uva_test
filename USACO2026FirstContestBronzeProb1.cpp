@@ -1,5 +1,5 @@
 #include <iostream>
-//#include <fstream>
+// #include <fstream>
 #include <vector>
 #include <string>
 #include <map>
@@ -30,10 +30,10 @@ int main()
         int64 atarget, btarget;
         //how many a and b right before overflow.
         atarget=fa-1;
-        btarget=cb-1;
+        btarget=cb-1; 
         int64 needed=0;
-        bool bbig;
-        if(a>=fa || a+(b/cb)*ca>fa)
+        bool bbig=false;
+        if(a>=fa || a+(b/cb)*ca>=fa)
         {
             cout << 0 << endl;
             continue;
@@ -61,8 +61,8 @@ int main()
         }
         else//a->atarget use a
         {
-            a=atarget;
             needed+=atarget-a;
+            a=atarget;
         }
         // b->btarget use b
         if(btarget-b>0)
