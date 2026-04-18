@@ -88,50 +88,32 @@ int main()
             }
             else
             {
-                set<string> diff;
-                int count[3] = {0,0,0};
-                for(int i=0;i<n;i++)
+                for(int i=0;i<n/2;i++)
                 {
-                    diff.insert(input.substr(i*n+1,3));
-                    if(input.substr(i*n+1,3)=="COW")
+                    string first=input.substr(i,3);
+                    string second=input.substr(i+n/2,3);
+                    if(first=="cow")
                     {
-                        count[0]++;
-                    }
-                    else if(input.substr(i*n+1,3)=="OWC")
-                    {
-                        count[1]++;
-                    }
-                    else
-                    {
-                        count[2]++;
-                    }
-                }
-                if(diff.size()==2)
-                {
-                    if(count[0]%2==0 && count[1]%2==0 && count[2]%2==0)
-                    {
-                        cout << 2 << endl;
-                        for(int i=0;i<3*n;i++)
+                        if(second=="cow")
                         {
-                            if(input.substr(i*n+1,3)==*diff.begin())
-                            {
-                                cout << 1;
-                            }
-                            else
-                            {
-                                cout << 2;
-                            }
-                            if(i<3*n-1)
-                            {
-                                cout << " ";
-                           }
-                        }    
-                        cout << endl;
+
+                        }
+                        else if(second=="owc")
+                        {
+
+                        }
+                        else//wco
+                        {
+
+                        }
                     }
-                    else
+                    else if(first=="owc")
                     {
-                        //the two letter similar
-                        if(*diff.begin()=="cow" && *prev(diff.end()) == "owc")
+
+                    }
+                    else//wco
+                    {
+
                     }
                 }
             }
