@@ -28,13 +28,16 @@ int main()
         cin >> input;
         if(n%2!=0)
         {
+            // cout << "option 1" << endl;
             cout << -1 << endl;
             continue;
         } 
         else if(k==1)
         {
+            // cout << "option 2" << endl;
             if(input.substr(0,n*3/2)==input.substr(n*3/2,n*3/2))
             {
+                // cout << "option 3" << endl;
                 cout << 1 << endl;
                 for(int i=0;i<3*n;i++)
                 {
@@ -48,6 +51,7 @@ int main()
             }
             else
             {
+                // cout << "option 4" << endl;
                 cout << 3 << endl;
                 for(int i=0;i<3*n;i++)
                 {
@@ -73,8 +77,10 @@ int main()
         }
         else
         {
+            // cout << "option 5" << endl;
             if(input.substr(0,n*3/2)==input.substr(n*3/2,n*3/2))
             {
+                // cout << "option 6" << endl;
                 cout << 1 << endl;
                 for(int i=0;i<3*n;i++)
                 {
@@ -88,34 +94,68 @@ int main()
             }
             else
             {
-                for(int i=0;i<n/2;i++)
+                // cout << "option 7" << endl;
+                vector<int> deleteorder(3*n,1);
+                for(int j=0;j<n/2;j+=1)
                 {
-                    string first=input.substr(i,3);
-                    string second=input.substr(i+n/2,3);
-                    if(first=="cow")
+                    string first=input.substr(j*3,3);
+                    string second=input.substr(j*3+3*n/2,3);
+                    int fc,sc;
+                    fc=first.find('C');//problem here
+                    sc=second.find('C');//problem here
+                    if(fc==sc)
                     {
-                        if(second=="cow")
+                    }
+                    else if((fc==0 && sc==1) || (fc==1 && sc==0))
+                    {
+                        if(fc==0)
                         {
-
+                            deleteorder[(j)*3+2]=2;
+                            deleteorder[(j)*3+3*n/2]=2;
                         }
-                        else if(second=="owc")
+                        else
                         {
-
-                        }
-                        else//wco
-                        {
-
+                            deleteorder[(j)*3]=2;
+                            deleteorder[(j)*3+3*n/2+2]=2;
                         }
                     }
-                    else if(first=="owc")
+                    else if((fc==0 && sc==2) || (fc==2 && sc==0))
                     {
-
+                        if(fc==0)
+                        {
+                            deleteorder[(j)*3]=2;
+                            deleteorder[(j)*3+3*n/2+2]=2;
+                        }
+                        else
+                        {
+                            deleteorder[(j)*3+2]=2;
+                            deleteorder[(j)*3+3*n/2]=2;
+                        }
                     }
-                    else//wco
+                    else if((fc==1 && sc==2) || (fc==2 && sc==1))
                     {
-
+                        if(fc==1)
+                        {
+                            deleteorder[(j)*3+2]=2;
+                            deleteorder[(j)*3+3*n/2]=2;
+                        }
+                        else
+                        {
+                            deleteorder[(j)*3]=2;
+                            deleteorder[(j)*3+3*n/2+2]=2;
+                        }
                     }
                 }
+                cout << 2 << endl;
+                for(int i=0;i<3*n;i++)
+                {
+                    cout << deleteorder[i];
+                    if(i<3*n-1)
+                    {
+                        cout << " ";
+                    }
+                }
+                cout << endl;
             }
         }
     }
