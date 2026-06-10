@@ -14,37 +14,45 @@ int main()
     cin >> n >> k;
     int q;
     cin >> q;
-    int grid[n][n];
+    vector<vector<int>> grid(n,vector<int> (n,0));
     int maxx;
     for(int i=0;i<q;i++)
     {
         int nvalue;
         int x,y;
         cin >> x >> y >> nvalue;
+        x-=1;
+        y-=1;
         grid[x][y] = nvalue;
         if(i==0)
         {
-            cout << nvalue;
+            cout << nvalue << endl;
             maxx=nvalue;
+            continue;
         }
         else
         {
             for(int j=max(0 , x-k+1);j<=max(0,x-k+1)+k-1;j++)
             {
-                for(int n=max(0 , y-k+1);n<=max(0,y-k+1)+k-1;n++)
+                for(int o=max(0 , y-k+1);o<=max(0,y-k+1)+k-1;o++)
                 {
+                    int curmax = 0;
 
-
-                    for(int l=j;l<=j+k;l++)
+                    for(int l=j;l<min(n-1,j+k);l++)
                     {
-                        for(int m=n;m<=n+k;m++)
+                        for(int m=o;m<min(n-1,o+k);m++)
                         {
-                    
+                            curmax+=grid[l][m];
                         }   
+                    }
+                    if(curmax>=maxx)
+                    {
+                        maxx = curmax;
                     }
                 }   
             }
         }
+        cout << maxx << endl;
     }
     
     return 0;
