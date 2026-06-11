@@ -1,21 +1,38 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <algorithm>
 
 using namespace std;
 #define int64 long long
-
-
+#define cin fin
+#define cout fout
 int main()
 {
-    ios::sync_with_stdio(0); cin.tie(0);
+    //ios::sync_with_stdio(0); cin.tie(0);
+
+    ifstream fin("problem.in");
+    ofstream fout("problem.out");
     int n,k;
     
     cin >> n >> k;
     int q;
-    cin >> q;
+    fin >> q;
     vector<vector<int>> grid(n,vector<int> (n,0));
-    int maxx;
+    int maxx = 0;
+    if(n==k)
+    {
+        for(int i=0;i<q;i++)
+        {
+            int nvalue;
+            int x,y;
+            cin >> x >> y >> nvalue;
+            x-=1;
+            y-=1;
+            maxx+=nvalue-grid[x][y];
+            grid[x][y] = nvalue;
+        }
+    }
     for(int i=0;i<q;i++)
     {
         int nvalue;
@@ -51,10 +68,13 @@ int main()
                     }
                 }   
             }
+
         }
         cout << maxx << endl;
     }
     
+    fin.close();
+    fout.close();
     return 0;
 
 }
